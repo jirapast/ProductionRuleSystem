@@ -1,0 +1,188 @@
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.ArrayList;
+import java.util.function.Predicate;
+
+
+interface WithParser {
+    void with(Predicate<Person> predicate);
+}
+
+abstract class VEB {
+    public VE engine;
+
+    protected VEB() {
+        engine = new VE();
+        // build();
+    }
+
+    protected WithParser validate(String desc) {
+        return new VRB(desc, engine);
+    }
+}
+
+class VE {
+    List<VR> rules = new ArrayList<VR>();
+    // rule
+    public void addRule(Predicate<Person> predicate, String errorMsg) {
+        rules.add(rule);
+    }
+}
+
+class VRB implements WithParser {
+    private VE engine;
+    public VRB(String desc, VE engine) {
+        this.desc = desc;
+        this.engine = engine;
+    }
+    public void with(Predicate<Person> predicate) {
+        engine.addRule(predicate, desc)
+    }
+}
+
+// 
+// ------------------------------------------------------------------------------------------------
+
+class Notification {
+    ArrayList<String> errors = new ArrayList<String>();
+
+    public boolean IsOk() {
+        return 0 == errors.size();
+    }
+
+    public boolean HasErrors() {
+        return !IsOk();
+    }
+
+    public void AddError(String s) {
+        errors.add(String.format(s));
+    }
+
+    // public void AssertOK() {
+    //     if (HasErrors()) throw new
+    // }
+}
+
+// class AA {
+//     public int age;
+//     public double income;
+//     public boolean employed;
+
+//     public AA(int age, double income, boolean employed) {
+//         this.age = age;
+//         this.income = income;
+//         this.employed = employed;
+//     }
+// }
+
+class Person {
+    public String name;
+    public String nation;
+
+    public Person(String name, String nation) {
+        this.name = name;
+        this.nation = nation;
+    }
+}
+
+
+class ValidationEngine {
+    List<ValidationRule> rules = new ArrayList<ValidationRule>();
+
+    public int count_rules() {
+        return rules.size();
+    }
+
+    public void clear_rules() {
+        rules.clear();
+    }
+
+    public Notification run(Person person) {
+        Notification result = new Notification();
+        for (int i = 0; i < rules.size(); i++) {
+            ValidationRule rule = this.rules.get(i);
+            rule.check(result, person);
+        }
+        return result;
+    }
+
+    public void AddRule(ValidationRule rule) {
+        rules.add(rule);
+    }
+}
+
+interface ValidationRule {
+    public void check(Notification noti, Person person);
+    // public void check();
+}
+
+class ExpressionValidationRule implements ValidationRule {
+    private Predicate<Person> predicate;
+    private String desc;
+
+    public ExpressionValidationRule(Predicate<Person> predicate, String desc) {
+        this.desc = desc;
+        this.predicate = predicate;
+    }
+
+    public void check(Notification noti, Person person) {
+        if (!predicate.test(person)) {
+            // 1. condition
+            // 2. conseqence action
+            noti.AddError(String.format("....", desc));;
+        }
+    }
+}
+
+
+public class DemoPrdRuleSystem {
+    public static void main(String[] args) {
+
+        // ------------------------------------------------------------------
+        // Person ps = new Person("Ali", "Iran");
+
+        // if (ps.nation.equalsIgnoreCase("Iran")) {
+        //     System.out.println("Access Denied: Restricted nationality");
+        // } else if (ps.nation.equalsIgnoreCase("Canada") || ps.nation.equalsIgnoreCase("Norway")) {
+        //     System.out.println("Welcome: Fast-track approval");
+        // } else {
+        //     System.out.println("Under Review: Manual check required");
+        // }
+
+        // Predicate<Person> p_1 = p -> p.nation.equalsIgnoreCase("Iran");
+        // Predicate<Person> p_2 = p -> p.nation.equalsIgnoreCase("Canada") || p.nation.equalsIgnoreCase("Norway");
+
+        // ExpressionValidationRule r_1 = new ExpressionValidationRule(p_1, "...");
+        // ExpressionValidationRule r_2 = new ExpressionValidationRule(p_2, "...");
+
+        // engine.AddRule(r1);
+
+        // ------------------------------------------------------------------
+
+        ValidationEngine engine = new ValidationEngine();
+
+        // ------------------------------------------------------------------
+        int rules_size = engine.count_rules();
+        System.out.println(String.format("rules_size ..... %d", rules_size));
+
+        // ------------------------------------------------------------------
+        Predicate<Person> p1 = p -> p.name != null;
+        Predicate<Person> p2 = p -> p.nation != null;
+
+        ExpressionValidationRule r1 = new ExpressionValidationRule(p1, "...");
+        ExpressionValidationRule r2 = new ExpressionValidationRule(p2, "...");
+
+        engine.AddRule(r1);
+        engine.AddRule(r2);
+
+        rules_size = engine.count_rules();
+        System.out.println(String.format("rules_size ..... %d", rules_size));
+
+        // ------------------------------------------------------------------
+        Person person = new Person("person", null);
+
+        Notification noti = engine.run(person);
+        System.out.println(String.format("....%b", noti.IsOk()));
+
+    }
+}
